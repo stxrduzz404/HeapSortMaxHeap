@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="從 Max-Heap 建堆到 Heap Sort，逐步觀察比較、交換與時間複雜度。">
+  <meta property="og:title" content="Heap Lab｜Max-Heap × Heap Sort">
+  <meta property="og:description" content="輸入一組數字，逐步看懂 Max-Heap 如何完成 Heap Sort。">
+  <meta property="og:url" content="https://cam-cheney.github.io/HeapSortMaxHeap/">
+  <meta property="og:image" content="https://cam-cheney.github.io/HeapSortMaxHeap/og.png">
+  <meta name="theme-color" content="#111827">
+  <title>Heap Lab｜Max-Heap × Heap Sort</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Heap Lab 首頁">
+      <span class="brand-mark" aria-hidden="true">H</span>
+      <span>HEAP LAB</span>
+    </a>
+    <nav aria-label="主要導覽">
+      <a href="#visualizer">互動操作</a>
+      <a href="#complexity">複雜度</a>
+      <a href="https://github.com/Cam-Cheney/HeapSortMaxHeap" id="repo-link">原始碼 ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow"><span></span> DATA STRUCTURE / 13</div>
+      <h1>看見最大值，<br><em>如何一路歸位。</em></h1>
+      <p class="hero-copy">從建立 Max-Heap 到原地 Heap Sort，把抽象的陣列索引變成每一步都看得見的比較與交換。</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#visualizer">開始操作 <span>↓</span></a>
+        <div class="complexity-stamp" aria-label="時間複雜度 O(n log n)">
+          <small>TIME</small><strong>O(n log n)</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="control-shell" id="visualizer" aria-labelledby="visualizer-title">
+      <div class="section-heading">
+        <div>
+          <span class="section-number">01</span>
+          <h2 id="visualizer-title">Heap Sort 操作台</h2>
+        </div>
+        <p>輸入 2–15 個整數，用空白或逗號分隔。</p>
+      </div>
+
+      <div class="input-panel">
+        <label for="number-input">資料集</label>
+        <div class="input-row">
+          <input id="number-input" type="text" value="21, 64, 8, 52, 37, 90, 17" inputmode="text" autocomplete="off" aria-describedby="input-help">
+          <button class="button button-primary" id="build-button" type="button">建立並排序</button>
+        </div>
+        <div class="input-footer">
+          <span id="input-help">範例：</span>
+          <button class="text-button example-button" data-values="21, 64, 8, 52, 37, 90, 17" type="button">課堂範例</button>
+          <button class="text-button example-button" data-values="4, 10, 3, 5, 1" type="button">小型資料</button>
+          <button class="text-button example-button" data-values="7, 7, -2, 18, 0, 11, 3" type="button">重複與負數</button>
+          <span class="input-error" id="input-error" role="alert"></span>
+        </div>
+      </div>
+
+      <div class="lab-grid">
+        <section class="visual-card" aria-labelledby="heap-title">
+          <div class="card-header">
+            <div>
+              <span class="phase-badge" id="phase-badge">READY</span>
+              <h3 id="heap-title">Max-Heap 樹</h3>
+            </div>
+            <div class="legend" aria-label="圖例">
+              <span><i class="legend-dot active"></i>目前</span>
+              <span><i class="legend-dot compare"></i>比較</span>
+              <span><i class="legend-dot fixed"></i>已排序</span>
+            </div>
+          </div>
+
+          <div class="tree-stage" id="tree-stage" aria-live="polite"></div>
+
+          <div class="array-section">
+            <div class="array-label-row">
+              <span>ARRAY VIEW</span>
+              <span id="heap-range">Heap 範圍：0–6</span>
+            </div>
+            <div class="array-view" id="array-view"></div>
+          </div>
+
+          <div class="transport" aria-label="動畫控制">
+            <button class="icon-button" id="reset-button" type="button" aria-label="回到第一步">↺</button>
+            <button class="icon-button" id="prev-button" type="button" aria-label="上一步">←</button>
+            <button class="play-button" id="play-button" type="button" aria-label="播放">▶ <span>播放</span></button>
+            <button class="icon-button" id="next-button" type="button" aria-label="下一步">→</button>
+            <div class="step-readout"><strong id="step-current">1</strong><span>/</span><span id="step-total">1</span></div>
+            <label class="speed-control" for="speed-range">速度
+              <input id="speed-range" type="range" min="250" max="1400" step="50" value="750">
+            </label>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-labelledby="step-title">
+          <span class="inspector-kicker">CURRENT STEP</span>
+          <h3 id="step-title">準備開始</h3>
+          <p id="step-description">按下「建立並排序」，觀察陣列如何先變成 Max-Heap，再由大到小固定到尾端。</p>
+
+          <div class="metrics">
+            <div><span>比較</span><strong id="compare-count">0</strong></div>
+            <div><span>交換</span><strong id="swap-count">0</strong></div>
+            <div><span>Heap 大小</span><strong id="heap-size">7</strong></div>
+          </div>
+
+          <div class="rule-card">
+            <span>INDEX RULES</span>
+            <dl>
+              <div><dt>parent</dt><dd>(i − 1) / 2</dd></div>
+              <div><dt>left</dt><dd>2i + 1</dd></div>
+              <div><dt>right</dt><dd>2i + 2</dd></div>
+            </dl>
+          </div>
+
+          <div class="progress-track" aria-label="排序進度">
+            <div id="progress-bar"></div>
+          </div>
+          <p class="keyboard-hint"><kbd>Space</kbd> 播放／暫停　<kbd>←</kbd><kbd>→</kbd> 切換步驟</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="theory" id="complexity" aria-labelledby="complexity-title">
+      <div class="section-heading light">
+        <div>
+          <span class="section-number">02</span>
+          <h2 id="complexity-title">為什麼是 O(n log n)？</h2>
+        </div>
+        <p>Max-Heap 讓每次最大的值都在根節點。</p>
+      </div>
+
+      <div class="theory-grid">
+        <article>
+          <span class="big-index">1</span>
+          <h3>建立 Max-Heap</h3>
+          <p>從最後一個非葉節點往前下沉。大量葉節點不需移動，因此整體是線性時間。</p>
+          <strong>O(n)</strong>
+        </article>
+        <article>
+          <span class="big-index">2</span>
+          <h3>取出最大值</h3>
+          <p>根與未排序區尾端交換，縮小 Heap，再讓新根往下沉，最多走一個樹高。</p>
+          <strong>O(log n) × n</strong>
+        </article>
+        <article class="result-card">
+          <span class="big-index">∑</span>
+          <h3>完成排序</h3>
+          <p>建堆一次，加上約 n 次下沉；同一個陣列完成，不需要第二個陣列。</p>
+          <strong>O(n log n) · O(1) space</strong>
+        </article>
+      </div>
+
+      <div class="complexity-table" role="table" aria-label="Max-Heap 複雜度">
+        <div class="table-row table-head" role="row"><span>操作</span><span>時間</span><span>核心原因</span></div>
+        <div class="table-row" role="row"><span>查看最大值 top</span><strong>O(1)</strong><span>根固定在 array[0]</span></div>
+        <div class="table-row" role="row"><span>插入 push</span><strong>O(log n)</strong><span>最多上浮一個樹高</span></div>
+        <div class="table-row" role="row"><span>刪除最大值 pop</span><strong>O(log n)</strong><span>最多下沉一個樹高</span></div>
+        <div class="table-row" role="row"><span>建立 Heap</span><strong>O(n)</strong><span>bottom-up 建堆</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>HEAP LAB</span>
+    <p>Max-Heap × Heap Sort · C++ Data Structures Project</p>
+    <a href="#top">回到頂端 ↑</a>
+  </footer>
+</body>
+</html>

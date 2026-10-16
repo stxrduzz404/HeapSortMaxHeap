@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Heap Sort",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/d",
+                "/c",
+                "call \"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\" && if not exist \"${workspaceFolder}\\build\" mkdir \"${workspaceFolder}\\build\" && cl.exe /nologo /std:c++17 /EHsc /W4 /O2 \"${workspaceFolder}\\main.cpp\" /Fe:\"${workspaceFolder}\\build\\heap_sort.exe\" /Fo:\"${workspaceFolder}\\build\\main.obj\""
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$msCompile"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
