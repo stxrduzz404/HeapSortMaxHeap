@@ -4,7 +4,7 @@
 
 ## 線上互動網頁
 
-**GitHub Pages：<https://cam-cheney.github.io/HeapSortMaxHeap/>**
+**GitHub Pages：<https://stxrduzz404.github.io/HeapSortMaxHeap/>**
 
 專案根目錄的 `index.html`、`styles.css` 與 `app.js` 是可部署到 GitHub Pages 的互動視覺化網站。網站可以：
 
